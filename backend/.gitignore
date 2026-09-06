@@ -1,4 +1,3 @@
-@"
 # Python
 __pycache__/
 *.py[cod]
@@ -27,4 +26,6 @@ chroma_db/
 
 # Uploaded files
 uploads/
-"@ | Set-Content ".gitignore"
+
+# Test artifacts
+tests/test_pdfs/

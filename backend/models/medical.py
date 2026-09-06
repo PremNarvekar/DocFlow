@@ -10,7 +10,7 @@ class TestResult(BaseModel):
     reference_range: Optional[str] = None
     
     
-class MedicalReportDate(BaseModel):
+class MedicalReportData(BaseModel):
     patient_id:str
     patient_name:str
     
