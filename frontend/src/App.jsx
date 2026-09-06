@@ -1,176 +1,104 @@
 import React, { useState, useEffect } from 'react';
-import AIModelStatus from './components/AIModelStatus';
 import FileUploader from './components/FileUploader';
+import AIModelStatus from './components/AIModelStatus';
 import WorkflowVisualizer from './components/WorkflowVisualizer';
 import ModelActivityLog from './components/ModelActivityLog';
-import ProcessingQueue from './components/ProcessingQueue';
-import DocumentCard from './components/DocumentCard';
-import NLQueryBox from './components/NLQueryBox';
+import MockResultsViewer from './components/MockResultsViewer';
+import { Layers } from 'lucide-react';
 
-// Dummy Data
-const DUMMY_MODELS = [
-  { id: '1', name: 'Grok', provider: 'xAI', status: 'available', tasks: ['Classification', 'Extraction'], latency: '820ms' },
-  { id: '2', name: 'Gemini 2.5', provider: 'Google', status: 'available', tasks: ['Extraction', 'RAG'], latency: '1.2s' },
-  { id: '3', name: 'Llama 3 70B', provider: 'Groq', status: 'not_configured', tasks: ['Classification'], latency: '--' },
-  { id: '4', name: 'Mistral Large', provider: 'Mistral', status: 'not_configured', tasks: ['Extraction'], latency: '--' },
-  { id: '5', name: 'Llama 3 8B', provider: 'Cerebras', status: 'available', tasks: ['Classification'], latency: '150ms' },
-  { id: '6', name: 'Claude 3.5 Sonnet', provider: 'OpenRouter', status: 'available', tasks: ['RAG', 'Extraction'], latency: '2.1s' },
-];
-
-const App = () => {
-  const [models, setModels] = useState(DUMMY_MODELS);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [currentStep, setCurrentStep] = useState(null);
-  const [activeModel, setActiveModel] = useState(null);
-  const [failedModels, setFailedModels] = useState([]);
+export default function App() {
+  const [appState, setAppState] = useState('idle'); // idle, uploading, processing, complete
   const [logs, setLogs] = useState([]);
-  const [documentResult, setDocumentResult] = useState(null);
 
-  const addLog = (log) => {
-    setLogs((prev) => [{ time: new Date().toLocaleTimeString(), ...log }, ...prev]);
+  const addLog = (msg) => {
+    setLogs(prev => [...prev, msg]);
   };
 
-  const handleUpload = (file) => {
-    // Reset state
-    setIsProcessing(true);
-    setCurrentStep('upload');
-    setActiveModel(null);
-    setFailedModels([]);
+  const handleUpload = () => {
+    setAppState('uploading');
     setLogs([]);
-    setDocumentResult(null);
+    addLog("> Initializing upload sequence...");
+    addLog("[SYSTEM] File received: invoice_acme.pdf (1.2MB)");
 
-    // Simulate pipeline timeline
-    const timeline = [
-      { step: 'validation', delay: 1000 },
-      { step: 'extraction', delay: 2000 },
-      { step: 'classification', delay: 3500 },
-      { step: 'ai_router', delay: 4500, action: () => simulateRouter() },
-    ];
-
-    let currentDelay = 0;
-    timeline.forEach(({ step, delay, action }) => {
-      setTimeout(() => {
-        setCurrentStep(step);
-        if (action) action();
-      }, delay);
-    });
-  };
-
-  const simulateRouter = () => {
-    // Mark Grok as active then failed
-    setActiveModel('Grok');
-    setModels(m => m.map(x => x.name === 'Grok' ? { ...x, status: 'active' } : x));
-    
     setTimeout(() => {
-      // Grok fails
-      addLog({ model: 'Grok', task: 'Classification', status: 'FAILED', reason: 'quota exhausted' });
-      addLog({ model: 'Router', task: 'Routing', status: 'FALLBACK' });
-      setFailedModels(['Grok']);
-      setModels(m => m.map(x => x.name === 'Grok' ? { ...x, status: 'quota_exhausted' } : x));
+      setAppState('processing');
+      addLog("> Upload complete. Beginning extraction pipeline.");
+      addLog("[PIPELINE] PyMuPDF extracting raw text pages [1/1]...");
       
       setTimeout(() => {
-        // Fallback to Gemini
-        setActiveModel('Gemini');
-        setModels(m => m.map(x => x.name === 'Gemini 2.5' ? { ...x, status: 'fallback' } : x));
+        addLog("[ROUTER] task=document_classification");
+        addLog("[GROK] Routing classification request to Grok-3-mini...");
         
         setTimeout(() => {
-          // Gemini succeeds
-          addLog({ model: 'Gemini', task: 'Classification', status: 'SUCCESS', latency: '820ms' });
-          setModels(m => m.map(x => x.name === 'Gemini 2.5' ? { ...x, status: 'available' } : x));
+          addLog("[GROK] Result: { \"document_type\": \"invoice\" } (Latency: 412ms)");
+          addLog("[ROUTER] task=structured_extraction schema=InvoiceData");
+          addLog("[GEMINI] Routing extraction request to Gemini-2.5-Flash...");
           
-          // Move to next steps
-          setCurrentStep('structured');
           setTimeout(() => {
-            addLog({ model: 'Gemini', task: 'Structured Extraction', status: 'SUCCESS', latency: '1.4s' });
-            setCurrentStep('pydantic');
-            setTimeout(() => {
-              setCurrentStep('anomaly');
-              setTimeout(() => {
-                setCurrentStep('storage');
-                setTimeout(() => {
-                  finishProcessing();
-                }, 1000);
-              }, 1000);
-            }, 1000);
-          }, 2000);
-          
-        }, 1500);
+            addLog("[GEMINI] Structured output received (Latency: 825ms)");
+            addLog("[PYDANTIC] VALIDATED: InvoiceData schema matches.");
+            addLog("> Pipeline complete.");
+            setAppState('complete');
+          }, 1200);
+        }, 800);
       }, 1000);
     }, 1500);
   };
 
-  const finishProcessing = () => {
-    setIsProcessing(false);
-    setCurrentStep(null);
-    setDocumentResult({
-      type: 'Invoice',
-      confidence: 0.98,
-      anomalies: [
-        { text: 'Tax amount mismatch detected', severity: 'warning' }
-      ],
-      data: {
-        vendor_name: 'Acme Corp',
-        invoice_number: 'INV-2024-001',
-        date: '2024-05-12',
-        total_amount: '$1,250.00',
-        currency: 'USD',
-        tax_amount: '$100.00' // simulated anomaly source
-      }
-    });
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">DocFlow Dashboard</h1>
-          <p className="text-gray-500 mt-1">Provider-Agnostic AI Document Intelligence</p>
-        </header>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 pb-12">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="bg-blue-600 p-1.5 rounded-lg">
+              <Layers className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900">DocFlow</h1>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-slate-500 hidden sm:block">Provider-Agnostic AI Document Intelligence</span>
+            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-semibold text-slate-600 border border-slate-300">
+              PN
+            </div>
+          </div>
+        </div>
+      </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Content Grid */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Left Column: Upload & Model Info */}
-          <div className="lg:col-span-1 space-y-6">
-            <FileUploader onUpload={handleUpload} isProcessing={isProcessing} />
-            <AIModelStatus models={models} />
+          {/* Left Column: Input & Status (4 cols on lg) */}
+          <div className="lg:col-span-4 space-y-6">
+            <FileUploader 
+              onUpload={handleUpload} 
+              isUploading={appState === 'uploading' || appState === 'processing'} 
+            />
+            <AIModelStatus />
           </div>
 
-          {/* Middle Column: Workflow & Queue */}
-          <div className="lg:col-span-1 space-y-6">
-            <WorkflowVisualizer 
-              currentStep={currentStep} 
-              activeModel={activeModel} 
-              failedModels={failedModels} 
-            />
-            <ProcessingQueue 
-              currentStep={currentStep} 
-              activeModel={activeModel} 
-            />
-          </div>
-
-          {/* Right Column: Activity Log & Results */}
-          <div className="lg:col-span-1 space-y-6 flex flex-col h-full">
-            <ModelActivityLog logs={logs} />
+          {/* Right Column: Workflow, Terminal, Results (8 cols on lg) */}
+          <div className="lg:col-span-8 flex flex-col space-y-6">
+            <WorkflowVisualizer currentStep={appState} />
             
-            {documentResult ? (
-              <div className="space-y-6 flex-1 flex flex-col">
-                <DocumentCard document={documentResult} />
-                <div className="flex-1">
-                  <NLQueryBox activeModel={activeModel} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[420px]">
+              {/* Terminal occupies full width if not complete, or half if complete on large screens */}
+              <div className={`${appState === 'complete' ? 'lg:col-span-1' : 'lg:col-span-2'} transition-all h-[400px] lg:h-full`}>
+                <ModelActivityLog logs={logs} />
+              </div>
+              
+              {/* Results appear when complete */}
+              {appState === 'complete' && (
+                <div className="lg:col-span-1 h-full animate-in fade-in slide-in-from-right-4 duration-500">
+                  <MockResultsViewer />
                 </div>
-              </div>
-            ) : (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-400 border-dashed flex-1 flex flex-col items-center justify-center">
-                <p>Upload a document to see extracted data</p>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
         </div>
-      </div>
+      </main>
     </div>
   );
-};
-
-export default App;
+}

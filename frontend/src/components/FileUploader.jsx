@@ -1,62 +1,40 @@
-import React, { useCallback } from 'react';
-import { Upload, File } from 'lucide-react';
+import React from 'react';
+import { UploadCloud } from 'lucide-react';
 
-const FileUploader = ({ onUpload, isProcessing }) => {
-  const handleDragOver = useCallback((e) => {
-    e.preventDefault();
-  }, []);
-
-  const handleDrop = useCallback((e) => {
-    e.preventDefault();
-    if (isProcessing) return;
-    
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      onUpload(files[0]);
-    }
-  }, [onUpload, isProcessing]);
-
-  const handleChange = (e) => {
-    if (e.target.files.length > 0) {
-      onUpload(e.target.files[0]);
-    }
-  };
-
+export default function FileUploader({ onUpload, isUploading }) {
   return (
-    <div 
-      className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-        isProcessing ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed' : 'border-blue-300 hover:border-blue-500 hover:bg-blue-50 cursor-pointer bg-white'
-      }`}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
-    >
-      <input 
-        type="file" 
-        id="file-upload" 
-        className="hidden" 
-        onChange={handleChange}
-        accept=".pdf"
-        disabled={isProcessing}
-      />
-      <label htmlFor="file-upload" className={isProcessing ? "cursor-not-allowed" : "cursor-pointer"}>
-        <div className="flex flex-col items-center justify-center">
-          <div className="bg-blue-100 p-3 rounded-full mb-4">
-            <Upload className="w-6 h-6 text-blue-600" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-1">
-            Upload Document
-          </h3>
-          <p className="text-sm text-gray-500 mb-4">
-            Drag and drop your PDF here, or click to browse
-          </p>
-          <div className="flex items-center text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
-            <File className="w-3 h-3 mr-1" />
-            PDF up to 10MB
-          </div>
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-slate-800">Process Document</h3>
+        <p className="text-sm text-slate-500">Upload a PDF to extract structured data using AI.</p>
+      </div>
+
+      <div 
+        className={`relative group flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl transition-all ${
+          isUploading 
+            ? 'border-blue-300 bg-blue-50 cursor-wait' 
+            : 'border-slate-300 hover:border-blue-500 hover:bg-slate-50 cursor-pointer'
+        }`}
+        onClick={() => !isUploading && onUpload()}
+      >
+        <div className={`p-4 rounded-full mb-3 ${isUploading ? 'bg-blue-100 text-blue-600 animate-pulse' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors'}`}>
+          <UploadCloud className="w-8 h-8" />
         </div>
-      </label>
+        
+        {isUploading ? (
+          <div className="text-center">
+            <p className="text-sm font-medium text-blue-600 mb-1">Uploading document...</p>
+            <p className="text-xs text-blue-400">Please wait</p>
+          </div>
+        ) : (
+          <div className="text-center">
+            <p className="text-sm font-medium text-slate-700 mb-1">
+              <span className="text-blue-600">Click to upload</span> or drag and drop
+            </p>
+            <p className="text-xs text-slate-500">PDF documents up to 10MB</p>
+          </div>
+        )}
+      </div>
     </div>
   );
-};
-
-export default FileUploader;
+}
