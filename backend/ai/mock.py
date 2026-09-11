@@ -82,9 +82,10 @@ class MockProvider(AIProvider):
         prompt: str,
         system_instruction: str = "",
         task: AITask = AITask.GENERAL_QUERY,
+        correlation_id: str | None = None,
     ) -> AIResponse:
-        self._call_count += 1
         self._maybe_fail()
+        self._call_count += 1
 
         request_id = self._make_request_id()
 
@@ -100,6 +101,7 @@ class MockProvider(AIProvider):
             task=task,
             latency_ms=self._latency_ms,
             request_id=request_id,
+            correlation_id=correlation_id,
         )
 
     def parse(
@@ -108,6 +110,7 @@ class MockProvider(AIProvider):
         schema: type[BaseModel],
         system_instruction: str = "",
         task: AITask = AITask.STRUCTURED_EXTRACTION,
+        correlation_id: str | None = None,
     ) -> AIResponse:
         self._call_count += 1
         self._maybe_fail()

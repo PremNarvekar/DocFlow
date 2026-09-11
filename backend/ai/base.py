@@ -74,6 +74,10 @@ class AIResponse(BaseModel):
     task: AITask
     latency_ms: float
     request_id: str
+    correlation_id: str | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    total_tokens: int | None = None
     fallback_used: bool = False
     fallback_from: str | None = None
 
@@ -125,6 +129,7 @@ class AIProvider(ABC):
         prompt: str,
         system_instruction: str = "",
         task: AITask = AITask.GENERAL_QUERY,
+        correlation_id: str | None = None,
     ) -> AIResponse:
         """Send a text prompt, get a text response."""
         ...
@@ -136,6 +141,7 @@ class AIProvider(ABC):
         schema: type[BaseModel],
         system_instruction: str = "",
         task: AITask = AITask.STRUCTURED_EXTRACTION,
+        correlation_id: str | None = None,
     ) -> AIResponse:
         """Send a text prompt, get a response that conforms to a Pydantic schema.
 

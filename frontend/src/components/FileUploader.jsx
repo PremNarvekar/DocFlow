@@ -2,6 +2,14 @@ import React from 'react';
 import { UploadCloud } from 'lucide-react';
 
 export default function FileUploader({ onUpload, isUploading }) {
+  const fileInputRef = React.useRef(null);
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      onUpload(e.target.files[0]);
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
       <div className="mb-4">
@@ -9,13 +17,21 @@ export default function FileUploader({ onUpload, isUploading }) {
         <p className="text-sm text-slate-500">Upload a PDF to extract structured data using AI.</p>
       </div>
 
+      <input 
+        type="file" 
+        accept="application/pdf"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+      />
+
       <div 
         className={`relative group flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-xl transition-all ${
           isUploading 
             ? 'border-blue-300 bg-blue-50 cursor-wait' 
             : 'border-slate-300 hover:border-blue-500 hover:bg-slate-50 cursor-pointer'
         }`}
-        onClick={() => !isUploading && onUpload()}
+        onClick={() => !isUploading && fileInputRef.current?.click()}
       >
         <div className={`p-4 rounded-full mb-3 ${isUploading ? 'bg-blue-100 text-blue-600 animate-pulse' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors'}`}>
           <UploadCloud className="w-8 h-8" />

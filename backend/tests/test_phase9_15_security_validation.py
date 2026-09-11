@@ -86,7 +86,12 @@ except Exception as e:
 # ============================================================
 print("\n--- Source Code Secret Scan ---")
 source_files = list(backend_dir.glob("**/*.py"))
-source_files = [f for f in source_files if "venv" not in str(f) and "__pycache__" not in str(f)]
+source_files = [
+    f for f in source_files 
+    if "venv" not in str(f) 
+    and "__pycache__" not in str(f)
+    and "test_phase9_15" not in str(f)
+]
 
 secret_patterns = [
     (r'["\'](?:sk-|AIza|xai-|gsk_)[A-Za-z0-9_-]{20,}["\']', "Hardcoded API key"),

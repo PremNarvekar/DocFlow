@@ -1,21 +1,8 @@
 """
-Base adapter for OpenAI-compatible providers.
+Base class for providers using the OpenAI SDK format (xAI, Groq, Mistral, etc).
 
-xAI, Groq, Cerebras, and OpenRouter all expose an OpenAI-compatible
-chat completions endpoint. The only differences are:
-  - base_url
-  - api_key
-  - default model name
-  - supported tasks
-
-This base class handles all the common logic. Each provider subclass
-just supplies its config constants.
-
-For structured output: these providers support JSON mode or
-function-calling. We use the simpler approach: instruct the model
-to return JSON matching the schema, then validate with Pydantic.
-This is less reliable than Gemini's native response_schema but
-works across all OpenAI-compatible endpoints.
+This base class handles all the common logic including telemetry, structured logging,
+timeout guarantees, and fallback schema validation.
 """
 
 from __future__ import annotations
@@ -28,6 +15,9 @@ from pydantic import BaseModel
 
 from ai.base import AIProvider, AIResponse, AITask, ProviderStatus
 from ai.errors import AIProviderError, ErrorCategory
+from utils.logger import get_structured_logger
+
+logger = get_structured_logger("docflow.ai.openai_compat")
 
 
 class OpenAICompatibleProvider(AIProvider):
@@ -53,13 +43,17 @@ class OpenAICompatibleProvider(AIProvider):
             return
         try:
             from openai import OpenAI
+            import httpx
 
+            # Enforce strict 60s timeout to prevent Celery worker hanging
             self._client = OpenAI(
                 api_key=self._api_key,
                 base_url=self._base_url,
+                http_client=httpx.Client(timeout=60.0)
             )
             self._status = ProviderStatus.AVAILABLE
-        except Exception:
+        except Exception as e:
+            logger.error(f"Failed to initialize {self.name} client", extra={"structured_data": {"error": str(e)}})
             self._status = ProviderStatus.ERROR
 
     # -- ABC properties --
@@ -96,10 +90,13 @@ class OpenAICompatibleProvider(AIProvider):
         prompt: str,
         system_instruction: str = "",
         task: AITask = AITask.GENERAL_QUERY,
+        correlation_id: str | None = None,
     ) -> AIResponse:
         self._ensure_available()
         request_id = self._make_request_id()
         start = time.time()
+
+        self._log_request("generate", request_id, correlation_id, task)
 
         messages = []
         if system_instruction:
@@ -111,17 +108,9 @@ class OpenAICompatibleProvider(AIProvider):
                 model=self._model_name,
                 messages=messages,
             )
-            text = response.choices[0].message.content or ""
-            return AIResponse(
-                text=text,
-                provider=self.name,
-                model=self._model_name,
-                task=task,
-                latency_ms=self._time_ms(start),
-                request_id=request_id,
-            )
+            return self._build_response(response, task, start, request_id, correlation_id)
         except Exception as exc:
-            self._handle_error(exc, request_id)
+            self._handle_error(exc, request_id, correlation_id)
 
     def parse(
         self,
@@ -129,15 +118,13 @@ class OpenAICompatibleProvider(AIProvider):
         schema: type[BaseModel],
         system_instruction: str = "",
         task: AITask = AITask.STRUCTURED_EXTRACTION,
+        correlation_id: str | None = None,
     ) -> AIResponse:
-        """Structured output via JSON mode + Pydantic validation.
-
-        We build a system instruction that includes the JSON schema,
-        ask for JSON output, then validate the response.
-        """
         self._ensure_available()
         request_id = self._make_request_id()
         start = time.time()
+
+        self._log_request("parse", request_id, correlation_id, task)
 
         schema_json = json.dumps(schema.model_json_schema(), indent=2)
         full_system = (
@@ -159,7 +146,6 @@ class OpenAICompatibleProvider(AIProvider):
                 "messages": messages,
             }
 
-            # Use JSON mode if available (most OpenAI-compatible APIs support it)
             try:
                 kwargs["response_format"] = {"type": "json_object"}
             except Exception:
@@ -167,43 +153,85 @@ class OpenAICompatibleProvider(AIProvider):
 
             response = self._client.chat.completions.create(**kwargs)
             text = response.choices[0].message.content or ""
-
-            # Strip markdown fences if the model wrapped the JSON
             text = self._strip_markdown_fences(text)
 
-            # Validate against schema — raises ValidationError if bad
             schema.model_validate_json(text)
 
-            return AIResponse(
-                text=text,
-                provider=self.name,
-                model=self._model_name,
-                task=task,
-                latency_ms=self._time_ms(start),
-                request_id=request_id,
-            )
+            # We must override the text in the response object manually for tracking purposes if we stripped it
+            response.choices[0].message.content = text
+            
+            return self._build_response(response, task, start, request_id, correlation_id)
         except AIProviderError:
             raise
         except Exception as exc:
-            # Check if it's a Pydantic ValidationError
             if "ValidationError" in type(exc).__name__:
+                logger.error("Structured output validation failed", extra={"structured_data": {
+                    "provider": self.name,
+                    "request_id": request_id,
+                    "correlation_id": correlation_id,
+                    "error": str(exc)
+                }})
                 raise AIProviderError(
                     f"Request {request_id}: model returned invalid structured output",
                     provider=self.name,
                     category=ErrorCategory.INVALID_RESPONSE,
                     original_error=exc,
                 )
-            self._handle_error(exc, request_id)
+            self._handle_error(exc, request_id, correlation_id)
 
     # -- Internal helpers --
 
+    def _log_request(self, method: str, request_id: str, correlation_id: str | None, task: AITask) -> None:
+        logger.info(f"{self.display_name} {method} request started", extra={"structured_data": {
+            "provider": self.name,
+            "model": self._model_name,
+            "task": task.value,
+            "request_id": request_id,
+            "correlation_id": correlation_id,
+        }})
+
+    def _build_response(self, response: Any, task: AITask, start_time: float, request_id: str, correlation_id: str | None) -> AIResponse:
+        latency = self._time_ms(start_time)
+        input_tokens = None
+        output_tokens = None
+        total_tokens = None
+
+        if hasattr(response, "usage") and response.usage:
+            input_tokens = getattr(response.usage, "prompt_tokens", None)
+            output_tokens = getattr(response.usage, "completion_tokens", None)
+            total_tokens = getattr(response.usage, "total_tokens", None)
+
+        text = ""
+        if hasattr(response, "choices") and len(response.choices) > 0:
+            text = response.choices[0].message.content or ""
+
+        logger.info(f"{self.display_name} request completed", extra={"structured_data": {
+            "provider": self.name,
+            "request_id": request_id,
+            "correlation_id": correlation_id,
+            "latency_ms": latency,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+        }})
+
+        return AIResponse(
+            text=text,
+            provider=self.name,
+            model=self._model_name,
+            task=task,
+            latency_ms=latency,
+            request_id=request_id,
+            correlation_id=correlation_id,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens,
+        )
+
     @staticmethod
     def _strip_markdown_fences(text: str) -> str:
-        """Remove ```json ... ``` wrappers that models sometimes add."""
         text = text.strip()
         if text.startswith("```"):
             lines = text.split("\n")
-            # Remove first line (```json) and last line (```)
             if lines[-1].strip() == "```":
                 lines = lines[1:-1]
             else:
@@ -219,8 +247,7 @@ class OpenAICompatibleProvider(AIProvider):
                 category=ErrorCategory.AUTH_ERROR,
             )
 
-    def _handle_error(self, exc: Exception, request_id: str) -> None:
-        """Convert OpenAI-style exceptions into AIProviderError."""
+    def _handle_error(self, exc: Exception, request_id: str, correlation_id: str | None) -> None:
         msg = str(exc)
         code = getattr(exc, "status_code", None)
 
@@ -230,6 +257,8 @@ class OpenAICompatibleProvider(AIProvider):
         elif code == 401 or "401" in msg or "auth" in msg.lower():
             self._status = ProviderStatus.AUTH_ERROR
             cat = ErrorCategory.AUTH_ERROR
+        elif code == 400 or "400" in msg:
+            cat = ErrorCategory.INVALID_REQUEST
         elif code == 408 or "timeout" in msg.lower():
             cat = ErrorCategory.TIMEOUT
         elif code and code >= 500:
@@ -238,6 +267,15 @@ class OpenAICompatibleProvider(AIProvider):
             cat = ErrorCategory.NETWORK_ERROR
         else:
             cat = ErrorCategory.UNKNOWN
+
+        logger.error(f"{self.display_name} request failed", extra={"structured_data": {
+            "provider": self.name,
+            "request_id": request_id,
+            "correlation_id": correlation_id,
+            "error_category": cat.value,
+            "error_message": msg,
+            "status_code": code
+        }})
 
         raise AIProviderError(
             f"Request {request_id} failed: {type(exc).__name__}",

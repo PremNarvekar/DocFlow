@@ -19,6 +19,7 @@ from ai.providers.groq import GroqProvider
 from ai.providers.cerebras import CerebrasProvider
 from ai.providers.mistral import MistralProvider
 from ai.providers.openrouter import OpenRouterProvider
+from ai.providers.huggingface import HuggingFaceProvider
 from ai.mock import MockProvider
 
 
@@ -30,6 +31,7 @@ _PROVIDER_FACTORIES: dict[str, type] = {
     "cerebras": CerebrasProvider,
     "mistral": MistralProvider,
     "openrouter": OpenRouterProvider,
+    "huggingface": HuggingFaceProvider
 }
 
 

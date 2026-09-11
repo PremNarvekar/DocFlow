@@ -40,6 +40,8 @@ EXTRACTION_SYSTEM_PROMPT = (
 )
 
 
+MAX_EXTRACTION_CHARS = 40000  # Approx 10k tokens
+
 def extract_document(
     text: str,
     document_type: DocumentType,
@@ -56,11 +58,24 @@ def extract_document(
             f"Unsupported document type: {document_type}"
         )
 
+    # Protect against context window exhaustion for massive documents
+    if len(text) > MAX_EXTRACTION_CHARS:
+        # Heuristic: The most important structured data (headers, totals, signatures)
+        # usually resides at the beginning and the end of the document.
+        half_limit = MAX_EXTRACTION_CHARS // 2
+        safe_text = (
+            text[:half_limit] + 
+            "\n\n... [CONTENT TRUNCATED FOR CONTEXT WINDOW SAFETY] ...\n\n" + 
+            text[-half_limit:]
+        )
+    else:
+        safe_text = text
+
     router = get_router()
 
     prompt = (
         f"Document type: {document_type.value}\n\n"
-        f"Document:\n{text}"
+        f"<document_content>\n{safe_text}\n</document_content>"
     )
 
     response = router.parse(

@@ -1,0 +1,48 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    env:
+      # Inject dummy keys so tests that mock the AI router don't fail missing-key validations
+      GEMINI_API_KEY: "ci_dummy_gemini_key"
+      XAI_API_KEY: "ci_dummy_xai_key"
+      HF_TOKEN: "ci_dummy_hf_token"
+      CELERY_BROKER_URL: "redis://localhost:6379/0"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+        cache: "pip"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+        pip install pytest pytest-asyncio pytest-mock
+
+    - name: Run Security & Validation Checks
+      run: |
+        # Ensure our repository hygiene and prompt injection guards are intact
+        PYTHONIOENCODING="utf-8" python backend/tests/test_phase9_15_security_validation.py
+
+    - name: Run Database Migrations
+      run: |
+        cd backend && alembic upgrade head
+
+    - name: Run Pytest Suite
+      run: |
+        # Run all unit and integration tests
+        cd backend && python -m pytest -v

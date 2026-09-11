@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: docflow_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: docflow_db
+    environment:
+      POSTGRES_USER: docflow_user
+      POSTGRES_PASSWORD: docflow_password
+      POSTGRES_DB: docflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: docflow_api
+    command: >
+      sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://docflow_user:docflow_password@db:5432/docflow
+      # Pass through all keys from the host's .env file if it exists
+    env_file:
+      - ./backend/.env
+    volumes:
+      # Mount codebase for hot-reloading (optional, remove in true prod)
+      - ./backend:/app
+      # Persistent storage volumes
+      - chroma_data:/app/chroma_db
+      - upload_data:/app/uploads
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: docflow_worker
+    command: celery -A tasks worker --loglevel=info
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://docflow_user:docflow_password@db:5432/docflow
+    env_file:
+      - ./backend/.env
+    volumes:
+      # Mount codebase for hot-reloading
+      - ./backend:/app
+      # Persistent storage volumes must be shared with the API!
+      - chroma_data:/app/chroma_db
+      - upload_data:/app/uploads
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:
+  chroma_data:
+  upload_data:

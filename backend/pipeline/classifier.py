@@ -56,11 +56,14 @@ def classify_document(text: str) -> DocumentClassification:
         )
 
     preview = text[:CLASSIFICATION_PREVIEW_CHARS]
+    
+    # Wrap in XML tags to isolate user data from system instructions
+    prompt_payload = f"<document_content>\n{preview}\n</document_content>"
 
     router = get_router()
 
     response = router.parse(
-        prompt=preview,
+        prompt=prompt_payload,
         schema=DocumentClassification,
         system_instruction=CLASSIFICATION_SYSTEM_PROMPT,
         task=AITask.DOCUMENT_CLASSIFICATION,
