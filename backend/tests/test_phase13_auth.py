@@ -28,7 +28,7 @@ def test_user_b():
 
 def test_document_scoping_isolation(test_user_a, test_user_b):
     """Test that User B cannot access User A's document task."""
-    task_id = "mock-task-for-isolation"
+    task_id = f"mock-task-{uuid4()}"
     doc_id = str(uuid4())
     
     # User A manually creates a document record

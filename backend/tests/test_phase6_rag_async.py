@@ -37,13 +37,9 @@ def test_health():
     assert response.json()["status"] == "healthy"
 
 
-@patch("main.process_document_task.delay")
-def test_async_document_upload(mock_delay, auth_headers):
-    """Test that POST /documents returns 202 and delegates to Celery."""
-    mock_task = MagicMock()
-    mock_task.id = "mock-task-123"
-    mock_delay.return_value = mock_task
-
+@patch("main.process_document_task")
+def test_async_document_upload(mock_process, auth_headers):
+    """Test that POST /documents returns 202 and delegates to background tasks."""
     file_content = b"%PDF-1.4 mock pdf content"
     files = {"file": ("test.pdf", file_content, "application/pdf")}
     
@@ -52,9 +48,9 @@ def test_async_document_upload(mock_delay, auth_headers):
     assert response.status_code == 202
     data = response.json()
     assert "document_id" in data
-    assert data["task_id"] == "mock-task-123"
+    assert "task_id" in data
     assert data["status"] == "PENDING"
-    mock_delay.assert_called_once()
+    mock_process.assert_called_once()
 
 
 def test_task_status(auth_headers):
