@@ -1,15 +1,6 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: docflow_redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-
   db:
     image: postgres:15-alpine
     container_name: docflow_db
@@ -22,6 +13,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docflow_user -d docflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build:
@@ -33,46 +29,32 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
       - DATABASE_URL=postgresql://docflow_user:docflow_password@db:5432/docflow
-      # Pass through all keys from the host's .env file if it exists
-    env_file:
-      - ./backend/.env
+      # Add your API keys here or via a .env file!
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     volumes:
-      # Mount codebase for hot-reloading (optional, remove in true prod)
-      - ./backend:/app
-      # Persistent storage volumes
       - chroma_data:/app/chroma_db
       - upload_data:/app/uploads
     depends_on:
-      - redis
-      - db
+      db:
+        condition: service_healthy
     restart: unless-stopped
 
-  worker:
+  frontend:
     build:
-      context: ./backend
+      context: ./frontend
       dockerfile: Dockerfile
-    container_name: docflow_worker
-    command: celery -A tasks worker --loglevel=info
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - DATABASE_URL=postgresql://docflow_user:docflow_password@db:5432/docflow
-    env_file:
-      - ./backend/.env
-    volumes:
-      # Mount codebase for hot-reloading
-      - ./backend:/app
-      # Persistent storage volumes must be shared with the API!
-      - chroma_data:/app/chroma_db
-      - upload_data:/app/uploads
+      args:
+        # Pass the API URL to Vite during build so the frontend knows where the backend is
+        VITE_API_URL: "http://localhost:8000"
+    container_name: docflow_frontend
+    ports:
+      - "3000:80"
     depends_on:
-      - redis
-      - db
+      - api
     restart: unless-stopped
 
 volumes:
-  redis_data:
   postgres_data:
   chroma_data:
   upload_data:
