@@ -9,22 +9,21 @@ ENV PYTHONPATH=/app
 WORKDIR /app
 
 # Install system dependencies
-# gcc is required for compiling some Python packages (e.g. PyMuPDF, ChromaDB deps)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . .
+COPY backend/ .
 
-# Expose port
-EXPOSE 8000
+# Expose Render's default port
+EXPOSE 10000
 
-# The actual command will be provided by docker-compose
-# depending on whether this is the API container or the Celery worker container.
+# Start Uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
