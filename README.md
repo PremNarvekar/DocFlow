@@ -13,6 +13,30 @@ Built with an emphasis on security, scalability, and clean architecture, DocFlow
 - **API Rate Limiting & Quotas:** Protects expensive LLM calls using database-level upload quotas and Token Bucket rate limiting (via `slowapi`) to prevent DoS and abuse.
 - **Modern React Dashboard:** A highly responsive React/Vite frontend featuring live workflow visualizations, real-time extraction logs, and an integrated RAG chat interface.
 
+## Pipeline Working Flow
+
+When a user uploads a document, the API returns a `202 Accepted` immediately. The document is then passed to an asynchronous background worker that executes the following deterministic pipeline:
+
+```mermaid
+graph TD
+    A[Client Uploads PDF] --> B[FastAPI API Gateway]
+    B --> C{Quota Check}
+    C -- Exceeded --> D[402 Payment Required]
+    C -- Valid --> E[Return 202 Accepted & Task ID]
+    E --> F[Background Thread Pipeline]
+    
+    subgraph Background Extraction Pipeline
+    F --> G[PyMuPDF: Extract Raw Text]
+    G --> H[AI Router: Classify Document]
+    H --> I[AI Router: Extract Pydantic JSON]
+    I --> J[Anomaly Engine: Deterministic Math Validation]
+    J --> K[ChromaDB: Chunk & Vectorize Text]
+    end
+    
+    K --> L[PostgreSQL: Mark COMPLETED]
+    L --> M[React UI: Render Results]
+```
+
 ## Architecture
 
 ### Backend (Python/FastAPI)
