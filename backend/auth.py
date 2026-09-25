@@ -41,22 +41,19 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return encoded_jwt
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: str = payload.get("sub")
-        if user_id is None:
-            raise credentials_exception
-    except InvalidTokenError:
-        raise credentials_exception
-        
-    user = db.query(User).filter(User.id == user_id).first()
-    if user is None:
-        raise credentials_exception
-        
+def get_current_user(db: Session = Depends(get_db)) -> User:
+    """Authentication completely removed. Returns a default workspace user."""
+    user = db.query(User).filter(User.email == "workspace@docflow.local").first()
+    if not user:
+        import uuid
+        user = User(
+            id=str(uuid.uuid4()),
+            email="workspace@docflow.local",
+            hashed_password="none",
+            upload_quota=999999,
+            uploads_used=0
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     return user
