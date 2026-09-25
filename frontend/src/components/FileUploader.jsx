@@ -1,20 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { UploadCloud, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { UploadCloud, ChevronDown, Check } from 'lucide-react';
 import { fetchProviderStatus } from '../lib/api';
 
 export default function FileUploader({ onUpload, isUploading }) {
-  const fileInputRef = React.useRef(null);
+  const fileInputRef = useRef(null);
+  const dropdownRef = useRef(null);
   const [provider, setProvider] = useState("auto");
   const [providers, setProviders] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     fetchProviderStatus().then(setProviders).catch(console.error);
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       onUpload(e.target.files[0], provider);
     }
+  };
+
+  const getProviderDisplayName = (val) => {
+    if (val === 'auto') return 'Auto (Best Available)';
+    const p = providers.find(x => x.name === val);
+    if (!p) return val;
+    return `${p.name.charAt(0).toUpperCase() + p.name.slice(1)} (${p.model})`;
   };
 
   return (
@@ -26,23 +46,43 @@ export default function FileUploader({ onUpload, isUploading }) {
         </div>
       </div>
 
-      <div className="mb-5">
-        <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">Select AI Model</label>
+      <div className="mb-5" ref={dropdownRef}>
+        <label className="block text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">AI Model</label>
         <div className="relative">
-          <select
-            value={provider}
-            onChange={(e) => setProvider(e.target.value)}
-            disabled={isUploading}
-            className="appearance-none w-full bg-white/[0.03] border border-white/10 text-slate-200 text-sm rounded-xl px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-pink-500/50 focus:border-pink-500 transition-all cursor-pointer disabled:opacity-50"
+          <div 
+            onClick={() => !isUploading && setIsDropdownOpen(!isDropdownOpen)}
+            className={`w-full flex items-center justify-between bg-white/[0.03] border border-white/10 text-slate-200 text-sm rounded-xl px-4 py-3 transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-pink-500/50 hover:bg-white/[0.05]'}`}
           >
-            <option value="auto" className="bg-slate-900">✨ Auto (Best Available)</option>
-            {providers.map(p => (
-              <option key={p.name} value={p.name} className="bg-slate-900">
-                {p.name.charAt(0).toUpperCase() + p.name.slice(1)} ({p.model})
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <span>{getProviderDisplayName(provider)}</span>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+          </div>
+
+          {isDropdownOpen && (
+            <div className="absolute z-20 w-full mt-2 bg-[#0a0a0f] border border-white/10 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div 
+                onClick={() => { setProvider('auto'); setIsDropdownOpen(false); }}
+                className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-white/[0.05] transition-colors"
+              >
+                <span className={`text-sm ${provider === 'auto' ? 'text-pink-400 font-medium' : 'text-slate-300'}`}>
+                  Auto (Best Available)
+                </span>
+                {provider === 'auto' && <Check className="w-4 h-4 text-pink-400" />}
+              </div>
+              
+              {providers.map(p => (
+                <div 
+                  key={p.name}
+                  onClick={() => { setProvider(p.name); setIsDropdownOpen(false); }}
+                  className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-white/[0.05] transition-colors border-t border-white/5"
+                >
+                  <span className={`text-sm ${provider === p.name ? 'text-pink-400 font-medium' : 'text-slate-300'}`}>
+                    {p.name.charAt(0).toUpperCase() + p.name.slice(1)} <span className="text-slate-500 ml-1">({p.model})</span>
+                  </span>
+                  {provider === p.name && <Check className="w-4 h-4 text-pink-400" />}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Send, Sparkles } from 'lucide-react';
 import FileUploader from './components/FileUploader';
 import DocumentHistory from './components/DocumentHistory';
-import AIModelStatus from './components/AIModelStatus';
 import WorkflowVisualizer from './components/WorkflowVisualizer';
 import ModelActivityLog from './components/ModelActivityLog';
 import ResultsViewer from './components/MockResultsViewer';
@@ -127,7 +126,6 @@ export default function App() {
               onUpload={handleUpload} 
               isUploading={appState === 'uploading' || appState === 'processing'} 
             />
-            <AIModelStatus />
             <DocumentHistory 
               onSelectDocument={handleSelectDocument} 
               currentDocumentId={documentId} 
