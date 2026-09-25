@@ -25,5 +25,5 @@ COPY backend/ .
 # Expose Render's default port
 EXPOSE 10000
 
-# Start Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
+# Start Uvicorn via python to avoid executable path issues
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
