@@ -4,7 +4,7 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "22"
   # VITE_API_URL must be set in the Netlify Dashboard to point to your Render backend URL
   
 # Redirect rule for Single Page Applications (React/Vite)
