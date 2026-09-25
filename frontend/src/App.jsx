@@ -105,10 +105,7 @@ export default function App() {
       <header className="bg-white/[0.02] backdrop-blur-3xl border-b border-white/[0.05] sticky top-0 z-10 shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-pink-500 p-2 rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.3)]">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-black italic tracking-tighter text-white">DocFlow</h1>
+            <h1 className="text-[28px] font-semibold tracking-tight text-white antialiased">DocFlow</h1>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium text-slate-400 hidden sm:block">Provider-Agnostic AI Document Intelligence</span>
