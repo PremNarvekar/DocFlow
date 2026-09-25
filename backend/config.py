@@ -62,3 +62,7 @@ DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./docflow.db")
 CHROMA_SERVER_HOST: str | None = os.getenv("CHROMA_SERVER_HOST")
 CHROMA_SERVER_PORT: str | None = os.getenv("CHROMA_SERVER_PORT", "8000")
 CHROMA_API_KEY: str | None = os.getenv("CHROMA_API_KEY")
+CHROMA_TENANT: str = os.getenv("CHROMA_TENANT", "default_tenant")
+CHROMA_DATABASE: str = os.getenv("CHROMA_DATABASE", "default_database")
+CHROMA_SSL: bool = os.getenv("CHROMA_SSL", "false").lower() == "true"
+CHROMA_COLLECTION: str = os.getenv("CHROMA_COLLECTION", "docflow")

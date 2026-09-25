@@ -48,7 +48,15 @@ def semantic_chunk_text(text: str, chunk_size: int = 1000, overlap: int = 200) -
     return chunks
 
 
-from config import CHROMA_SERVER_HOST, CHROMA_SERVER_PORT, CHROMA_API_KEY
+from config import (
+    CHROMA_SERVER_HOST, 
+    CHROMA_SERVER_PORT, 
+    CHROMA_API_KEY, 
+    CHROMA_TENANT, 
+    CHROMA_DATABASE,
+    CHROMA_SSL,
+    CHROMA_COLLECTION
+)
 
 class DocumentStore:
     """Persistent ChromaDB storage for processed DocFlow documents.
@@ -60,9 +68,10 @@ class DocumentStore:
     def __init__(
         self,
         db_path: str | Path = DEFAULT_DB_PATH,
-        collection_name: str = DEFAULT_COLLECTION,
+        collection_name: str | None = None,
     ) -> None:
         self.db_path = Path(db_path)
+        collection_name = collection_name or CHROMA_COLLECTION
         
         if CHROMA_SERVER_HOST:
             # Use managed ChromaDB HTTP API
@@ -74,6 +83,9 @@ class DocumentStore:
             self.client = chromadb.HttpClient(
                 host=CHROMA_SERVER_HOST,
                 port=CHROMA_SERVER_PORT,
+                ssl=CHROMA_SSL,
+                tenant=CHROMA_TENANT,
+                database=CHROMA_DATABASE,
                 settings=settings
             )
         else:
