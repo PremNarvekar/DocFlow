@@ -77,3 +77,11 @@ export async function fetchDocuments() {
   if (!res.ok) throw new Error('Failed to fetch documents');
   return res.json();
 }
+
+export async function fetchProviderStatus() {
+  const res = await fetch(`${API_URL}/providers/status`, {
+    headers: { ...getAuthHeaders() }
+  });
+  if (!res.ok) throw new Error('Failed to fetch provider status');
+  return res.json();
+}

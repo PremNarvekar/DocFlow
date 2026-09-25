@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, Server } from 'lucide-react';
-import api from '../lib/api';
+import { fetchProviderStatus } from '../lib/api';
 
 export default function AIModelStatus() {
   const [providers, setProviders] = useState([]);
@@ -9,8 +9,8 @@ export default function AIModelStatus() {
   useEffect(() => {
     const fetchProviders = async () => {
       try {
-        const response = await api.get('/providers/status');
-        setProviders(response.data);
+        const data = await fetchProviderStatus();
+        setProviders(data);
       } catch (error) {
         console.error('Failed to fetch provider status:', error);
       } finally {
