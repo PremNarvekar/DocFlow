@@ -1,10 +1,5 @@
 services:
-  # 1. PostgreSQL Database for DocFlow
-  - type: pgo
-    name: docflow-db
-    plan: free
-
-  # 2. FastAPI Backend Service
+  # FastAPI Backend Service
   - type: web
     name: docflow-backend
     env: python
@@ -17,9 +12,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.0
       - key: DATABASE_URL
-        fromDatabase:
-          name: docflow-db
-          property: connectionString
+        sync: false # Set this to your Neon PostgreSQL connection string in the Render Dashboard
       - key: GEMINI_API_KEY
         sync: false # You must set this manually in the Render Dashboard
       - key: JWT_SECRET_KEY

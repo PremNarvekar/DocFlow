@@ -58,3 +58,7 @@ PROVIDER_MODELS: dict[str, str | None] = {
 }
 
 DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./docflow.db")
+
+CHROMA_SERVER_HOST: str | None = os.getenv("CHROMA_SERVER_HOST")
+CHROMA_SERVER_PORT: str | None = os.getenv("CHROMA_SERVER_PORT", "8000")
+CHROMA_API_KEY: str | None = os.getenv("CHROMA_API_KEY")
