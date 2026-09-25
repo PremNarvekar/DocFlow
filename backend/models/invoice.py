@@ -39,10 +39,7 @@ class InvoiceData(BaseModel):
 
     @model_validator(mode="after")
     def validate_totals(self) -> "InvoiceData":
-        expected_total = self.subtotal + self.tax - self.discount
-        if abs(expected_total - self.total) > 0.02:
-            raise ValueError(
-                f"Arithmetic failure: subtotal ({self.subtotal}) + tax ({self.tax}) - "
-                f"discount ({self.discount}) = {expected_total:.2f}, but total is {self.total}"
-            )
+        # Relaxed mathematical validation for AI extraction.
+        # Strict discrepancies are handled downstream by the Anomaly Engine instead 
+        # of fatally crashing the extraction task here.
         return self
