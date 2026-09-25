@@ -22,17 +22,23 @@ export default function WorkflowVisualizer({ currentStep }) {
   };
 
   return (
-    <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl shadow-lg shadow-pink-500/5 border border-white/10 p-5 mb-6">
-      <div className="flex justify-between items-start relative">
-        {/* Background line */}
-        <div className="absolute top-5 left-[10%] right-[10%] h-[2px] bg-slate-800 -z-10"></div>
-        {/* Active line fill */}
+    <div className="bg-white/[0.02] backdrop-blur-2xl rounded-3xl border border-white/[0.05] p-6 mb-6 shadow-2xl relative overflow-hidden">
+      {/* Ambient animated background glow for active processing */}
+      {currentStep === 'processing' && (
+        <div className="absolute inset-0 bg-pink-500/[0.03] animate-pulse pointer-events-none" />
+      )}
+      
+      <div className="flex justify-between items-start relative z-10">
+        {/* Subtle Background line */}
+        <div className="absolute top-5 left-[12%] right-[12%] h-[2px] bg-white/[0.05] -z-10 rounded-full"></div>
+        
+        {/* Active line fill with glow */}
         <div 
-          className="absolute top-5 left-[10%] h-[2px] bg-pink-500 transition-all duration-500 -z-10"
+          className="absolute top-5 left-[12%] h-[2px] bg-pink-500 transition-all duration-1000 ease-in-out -z-10 rounded-full shadow-[0_0_10px_rgba(236,72,153,0.8)]"
           style={{ 
             width: currentStep === 'idle' ? '0%' : 
                    currentStep === 'uploading' ? '25%' : 
-                   currentStep === 'processing' ? '65%' : '80%' 
+                   currentStep === 'processing' ? '65%' : '76%' 
           }}
         ></div>
 
@@ -42,20 +48,22 @@ export default function WorkflowVisualizer({ currentStep }) {
           
           return (
             <div key={step.id} className="flex flex-col items-center w-1/4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 border-2 transition-colors bg-slate-900/50 backdrop-blur-xl ${
-                status === 'completed' ? 'border-emerald-500 text-emerald-500' :
-                status === 'active' ? 'border-pink-500 text-pink-400 shadow-[0_0_0_4px_rgba(59,130,246,0.1)]' :
-                'border-white/10 text-slate-500'
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 transition-all duration-500 backdrop-blur-md ${
+                status === 'completed' 
+                  ? 'bg-white/[0.05] border border-white/20 text-white shadow-[0_0_15px_rgba(255,255,255,0.1)]' 
+                  : status === 'active' 
+                    ? 'bg-pink-500 text-white border-none shadow-[0_4px_20px_rgba(236,72,153,0.5)] scale-110 animate-in zoom-in' 
+                    : 'bg-[#0a0a0f] border border-white/5 text-slate-600'
               }`}>
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-4 h-4 ${status === 'active' ? 'animate-pulse' : ''}`} />
               </div>
-              <p className={`text-sm font-semibold mb-0.5 ${
-                status === 'active' ? 'text-pink-500' : 
-                status === 'completed' ? 'text-emerald-600' : 'text-slate-500'
+              <p className={`text-xs font-semibold tracking-wide uppercase transition-colors duration-500 ${
+                status === 'active' ? 'text-pink-400' : 
+                status === 'completed' ? 'text-slate-300' : 'text-slate-600'
               }`}>
                 {step.name}
               </p>
-              <p className="text-xs text-slate-500 hidden sm:block text-center">{step.desc}</p>
+              <p className="text-[10px] text-slate-500 hidden sm:block text-center mt-1 font-medium tracking-wide opacity-70">{step.desc}</p>
             </div>
           );
         })}

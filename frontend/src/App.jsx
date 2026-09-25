@@ -108,7 +108,7 @@ export default function App() {
             <div className="bg-pink-500 p-2 rounded-xl shadow-[0_0_20px_rgba(236,72,153,0.3)]">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-white">DocFlow</h1>
+            <h1 className="text-2xl font-black italic tracking-tighter text-white">DocFlow</h1>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium text-slate-400 hidden sm:block">Provider-Agnostic AI Document Intelligence</span>
@@ -117,11 +117,11 @@ export default function App() {
       </header>
 
       {/* Main Content Grid */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both">
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-both">
           
           {/* Left Column: Input & Status */}
-          <div className="lg:col-span-4 flex flex-col gap-6">
+          <div className="xl:col-span-4 flex flex-col gap-6">
             <FileUploader 
               onUpload={handleUpload} 
               isUploading={appState === 'uploading' || appState === 'processing'} 
@@ -133,7 +133,7 @@ export default function App() {
           </div>
 
           {/* Right Column: Workflow, Terminal, Results */}
-          <div className="lg:col-span-8 flex flex-col gap-6">
+          <div className="xl:col-span-8 flex flex-col gap-6">
             <WorkflowVisualizer currentStep={appState} />
             
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 min-h-[420px]">
