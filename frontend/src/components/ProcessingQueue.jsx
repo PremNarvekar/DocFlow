@@ -21,7 +21,7 @@ const ProcessingQueue = ({ currentStep, activeModel }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl shadow-lg shadow-pink-500/5 border border-gray-100 p-6">
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Processing Timeline</h2>
       
       <div className="space-y-4">
@@ -36,8 +36,8 @@ const ProcessingQueue = ({ currentStep, activeModel }) => {
                     <Check className="w-4 h-4 text-green-600" />
                   </div>
                 ) : status === 'active' ? (
-                  <div className="bg-blue-100 p-1 rounded-full">
-                    <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                  <div className="bg-pink-500/20 p-1 rounded-full">
+                    <Loader2 className="w-4 h-4 text-pink-500 animate-spin" />
                   </div>
                 ) : (
                   <div className="text-gray-300 p-1">
@@ -47,7 +47,7 @@ const ProcessingQueue = ({ currentStep, activeModel }) => {
                 
                 <span className={`font-medium ${
                   status === 'completed' ? 'text-gray-900' :
-                  status === 'active' ? 'text-blue-700' :
+                  status === 'active' ? 'text-pink-400' :
                   'text-gray-400'
                 }`}>
                   {step.label}
@@ -57,7 +57,7 @@ const ProcessingQueue = ({ currentStep, activeModel }) => {
               {/* Optional sub-info for AI steps */}
               {status === 'completed' && ['classification', 'structured'].includes(step.id) && activeModel && (
                 <div className="ml-9 mt-1 text-xs text-gray-500 border-l-2 border-gray-100 pl-3 py-1">
-                  Model: <span className="font-semibold text-blue-600">{activeModel}</span> ✓
+                  Model: <span className="font-semibold text-pink-500">{activeModel}</span> ✓
                 </div>
               )}
             </div>
@@ -68,7 +68,7 @@ const ProcessingQueue = ({ currentStep, activeModel }) => {
       {activeModel && (
         <div className="mt-6 pt-4 border-t border-gray-100 bg-gray-50 -mx-6 -mb-6 px-6 pb-6 rounded-b-xl">
           <p className="text-sm text-gray-500 uppercase tracking-wider mb-1">Final Model</p>
-          <p className="text-lg font-bold text-blue-600">{activeModel}</p>
+          <p className="text-lg font-bold text-pink-500">{activeModel}</p>
         </div>
       )}
     </div>

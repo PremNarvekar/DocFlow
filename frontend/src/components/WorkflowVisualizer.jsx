@@ -22,13 +22,13 @@ export default function WorkflowVisualizer({ currentStep }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+    <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl shadow-lg shadow-pink-500/5 border border-white/10 p-5 mb-6">
       <div className="flex justify-between items-start relative">
         {/* Background line */}
-        <div className="absolute top-5 left-[10%] right-[10%] h-[2px] bg-slate-100 -z-10"></div>
+        <div className="absolute top-5 left-[10%] right-[10%] h-[2px] bg-slate-800 -z-10"></div>
         {/* Active line fill */}
         <div 
-          className="absolute top-5 left-[10%] h-[2px] bg-blue-500 transition-all duration-500 -z-10"
+          className="absolute top-5 left-[10%] h-[2px] bg-pink-500 transition-all duration-500 -z-10"
           style={{ 
             width: currentStep === 'idle' ? '0%' : 
                    currentStep === 'uploading' ? '25%' : 
@@ -42,20 +42,20 @@ export default function WorkflowVisualizer({ currentStep }) {
           
           return (
             <div key={step.id} className="flex flex-col items-center w-1/4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 border-2 transition-colors bg-white ${
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 border-2 transition-colors bg-slate-900/50 backdrop-blur-xl ${
                 status === 'completed' ? 'border-emerald-500 text-emerald-500' :
-                status === 'active' ? 'border-blue-500 text-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.1)]' :
-                'border-slate-200 text-slate-400'
+                status === 'active' ? 'border-pink-500 text-pink-400 shadow-[0_0_0_4px_rgba(59,130,246,0.1)]' :
+                'border-white/10 text-slate-500'
               }`}>
                 <Icon className="w-5 h-5" />
               </div>
               <p className={`text-sm font-semibold mb-0.5 ${
-                status === 'active' ? 'text-blue-600' : 
-                status === 'completed' ? 'text-emerald-600' : 'text-slate-600'
+                status === 'active' ? 'text-pink-500' : 
+                status === 'completed' ? 'text-emerald-600' : 'text-slate-500'
               }`}>
                 {step.name}
               </p>
-              <p className="text-xs text-slate-400 hidden sm:block text-center">{step.desc}</p>
+              <p className="text-xs text-slate-500 hidden sm:block text-center">{step.desc}</p>
             </div>
           );
         })}

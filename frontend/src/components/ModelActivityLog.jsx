@@ -17,9 +17,9 @@ export default function ModelActivityLog({ logs }) {
         <div className="flex gap-2">
           <div className="w-3 h-3 rounded-full bg-rose-500"></div>
           <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-          <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+          <div className="w-3 h-3 rounded-full bg-pink-500"></div>
         </div>
-        <div className="flex items-center gap-2 text-slate-400">
+        <div className="flex items-center gap-2 text-slate-500">
           <Terminal className="w-4 h-4" />
           <span className="text-xs font-mono font-medium tracking-wider">AI_ROUTER_LOG</span>
         </div>
@@ -42,7 +42,7 @@ export default function ModelActivityLog({ logs }) {
 
             return (
               <div key={index} className="flex gap-3 items-start animate-fade-in-up">
-                <span className="text-slate-600 select-none shrink-0">
+                <span className="text-slate-500 select-none shrink-0">
                   {new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' })}
                 </span>
                 <span className={`${textColor} break-words`}>{log}</span>

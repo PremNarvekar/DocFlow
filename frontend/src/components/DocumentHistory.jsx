@@ -30,20 +30,20 @@ export default function DocumentHistory({ onSelectDocument, currentDocumentId })
 
   if (loading && documents.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex justify-center items-center h-48">
-        <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+      <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl shadow-lg shadow-pink-500/5 border border-white/10 p-6 flex justify-center items-center h-48">
+        <Loader2 className="w-6 h-6 text-pink-400 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[400px]">
-      <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex justify-between items-center">
-        <h3 className="font-semibold text-slate-800 text-sm flex items-center gap-2">
+    <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl shadow-lg shadow-pink-500/5 border border-white/10 overflow-hidden flex flex-col h-[400px]">
+      <div className="bg-slate-950 border-b border-white/10 px-4 py-3 flex justify-between items-center">
+        <h3 className="font-semibold text-slate-200 text-sm flex items-center gap-2">
           <Clock className="w-4 h-4 text-slate-500" />
           Document History
         </h3>
-        <span className="text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+        <span className="text-xs font-medium bg-pink-500/20 text-pink-400 px-2 py-0.5 rounded-full">
           {documents.length} files
         </span>
       </div>
@@ -56,7 +56,7 @@ export default function DocumentHistory({ onSelectDocument, currentDocumentId })
         )}
         
         {documents.length === 0 && !error ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+          <div className="h-full flex flex-col items-center justify-center text-slate-500 p-6 text-center">
             <FileText className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm">No documents uploaded yet.</p>
           </div>
@@ -67,8 +67,8 @@ export default function DocumentHistory({ onSelectDocument, currentDocumentId })
               onClick={() => onSelectDocument(doc)}
               className={`w-full text-left p-3 rounded-lg border transition-all ${
                 currentDocumentId === doc.id 
-                  ? 'bg-blue-50 border-blue-200' 
-                  : 'bg-white border-transparent hover:bg-slate-50 hover:border-slate-200'
+                  ? 'bg-pink-500/10 border-pink-500/30' 
+                  : 'bg-slate-900/50 backdrop-blur-xl border-transparent hover:bg-slate-950 hover:border-white/10'
               } flex items-start gap-3`}
             >
               <div className="mt-0.5">
@@ -77,11 +77,11 @@ export default function DocumentHistory({ onSelectDocument, currentDocumentId })
                 ) : doc.status === 'FAILED' ? (
                   <AlertCircle className="w-4 h-4 text-red-500" />
                 ) : (
-                  <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                  <Loader2 className="w-4 h-4 text-pink-400 animate-spin" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 truncate">
+                <p className="text-sm font-medium text-white truncate">
                   {doc.filename}
                 </p>
                 <p className="text-xs text-slate-500 mt-0.5">

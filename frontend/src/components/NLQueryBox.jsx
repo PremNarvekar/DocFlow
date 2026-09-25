@@ -29,10 +29,10 @@ const NLQueryBox = ({ activeModel }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-full">
+    <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl shadow-lg shadow-pink-500/5 border border-gray-100 flex flex-col h-full">
       <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Search className="w-5 h-5 text-blue-500" />
+          <Search className="w-5 h-5 text-pink-400" />
           <h2 className="text-lg font-semibold text-gray-800">Natural Language Query (RAG)</h2>
         </div>
       </div>
@@ -41,12 +41,12 @@ const NLQueryBox = ({ activeModel }) => {
         {chat.map((msg, idx) => (
           <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-              msg.role === 'user' ? 'bg-gray-100 text-gray-600' : 'bg-blue-100 text-blue-600'
+              msg.role === 'user' ? 'bg-gray-100 text-gray-600' : 'bg-pink-500/20 text-pink-500'
             }`}>
               {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
             </div>
             <div className={`px-4 py-2 rounded-2xl max-w-[80%] text-sm ${
-              msg.role === 'user' ? 'bg-blue-500 text-white rounded-tr-sm' : 'bg-gray-100 text-gray-800 rounded-tl-sm'
+              msg.role === 'user' ? 'bg-pink-500 text-white rounded-tr-sm' : 'bg-gray-100 text-gray-800 rounded-tl-sm'
             }`}>
               {msg.text}
             </div>
@@ -54,7 +54,7 @@ const NLQueryBox = ({ activeModel }) => {
         ))}
         {isTyping && (
           <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-pink-500/20 text-pink-500 flex items-center justify-center shrink-0">
               <Bot className="w-4 h-4" />
             </div>
             <div className="px-4 py-2 rounded-2xl bg-gray-100 text-gray-500 rounded-tl-sm flex items-center gap-2">
@@ -69,7 +69,7 @@ const NLQueryBox = ({ activeModel }) => {
           <input 
             type="text" 
             placeholder="Ask a question about the document..."
-            className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+            className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             disabled={isTyping}
@@ -77,7 +77,7 @@ const NLQueryBox = ({ activeModel }) => {
           <button 
             type="submit"
             disabled={isTyping || !query.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Send className="w-4 h-4" />
           </button>

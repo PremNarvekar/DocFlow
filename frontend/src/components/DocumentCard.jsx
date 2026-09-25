@@ -6,13 +6,13 @@ const DocumentCard = ({ document }) => {
   if (!document) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-slate-900/50 backdrop-blur-xl rounded-xl shadow-lg shadow-pink-500/5 border border-gray-100 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FileText className="w-5 h-5 text-gray-500" />
           <h2 className="text-lg font-semibold text-gray-800">Extracted Document Data</h2>
         </div>
-        <span className="px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full uppercase">
+        <span className="px-2.5 py-1 text-xs font-medium bg-pink-500/20 text-pink-400 rounded-full uppercase">
           {document.type}
         </span>
       </div>
