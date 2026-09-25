@@ -75,10 +75,9 @@ class DocumentStore:
         
         if CHROMA_SERVER_HOST:
             # Use managed ChromaDB HTTP API
-            settings = chromadb.Settings()
+            headers = {}
             if CHROMA_API_KEY:
-                settings.chroma_client_auth_provider = "chromadb.auth.token.TokenAuthClientProvider"
-                settings.chroma_client_auth_credentials = CHROMA_API_KEY
+                headers["x-chroma-token"] = CHROMA_API_KEY
                 
             self.client = chromadb.HttpClient(
                 host=CHROMA_SERVER_HOST,
@@ -86,7 +85,7 @@ class DocumentStore:
                 ssl=CHROMA_SSL,
                 tenant=CHROMA_TENANT,
                 database=CHROMA_DATABASE,
-                settings=settings
+                headers=headers
             )
         else:
             # Fallback to local PersistentClient

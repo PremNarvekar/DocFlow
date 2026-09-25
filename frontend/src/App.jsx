@@ -10,7 +10,7 @@ import { Layers, LogOut, Send, Bot, User as UserIcon } from 'lucide-react';
 import { uploadDocument, getTaskStatus, askQuestion } from './lib/api';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true); // TEMPORARY BYPASS
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
   const [appState, setAppState] = useState('idle'); // idle, uploading, processing, complete
   const [logs, setLogs] = useState([]);
   const [taskId, setTaskId] = useState(null);
@@ -114,9 +114,9 @@ export default function App() {
     }
   };
 
-  // if (!isAuthenticated) {
-  //   return <Auth onLoginSuccess={() => setIsAuthenticated(true)} />;
-  // }
+  if (!isAuthenticated) {
+    return <Auth onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-white pb-12">
