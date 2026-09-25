@@ -61,6 +61,40 @@ def health_check() -> dict[str, str]:
     }
 
 
+from config import PROVIDER_API_KEYS, PROVIDER_MODELS
+
+@app.get("/providers/status")
+def provider_status() -> list[dict]:
+    """Returns the live status of AI providers based on loaded API keys."""
+    status_list = []
+    # Map backend keys to nice UI names
+    ui_names = {
+        "gemini": "Gemini",
+        "xai": "Grok",
+        "groq": "Groq",
+        "cerebras": "Cerebras",
+        "mistral": "Mistral",
+        "openrouter": "OpenRouter",
+        "huggingface": "Hugging Face"
+    }
+    
+    for provider_id, name in ui_names.items():
+        key = PROVIDER_API_KEYS.get(provider_id)
+        model = PROVIDER_MODELS.get(provider_id) or "default"
+        is_available = bool(key and key != "dummy")
+        
+        # Only include providers that are actually configured/available!
+        if is_available:
+            status_list.append({
+                "name": name,
+                "model": model,
+                "status": "Available",
+                "latency": "..."
+            })
+            
+    return status_list
+
+
 @app.post("/auth/register", status_code=201)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
