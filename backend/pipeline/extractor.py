@@ -45,6 +45,7 @@ MAX_EXTRACTION_CHARS = 40000  # Approx 10k tokens
 def extract_document(
     text: str,
     document_type: DocumentType,
+    provider: str = "auto"
 ) -> BaseModel:
     if not text or not text.strip():
         raise ValueError(
@@ -83,6 +84,7 @@ def extract_document(
         schema=schema,
         system_instruction=EXTRACTION_SYSTEM_PROMPT,
         task=AITask.STRUCTURED_EXTRACTION,
+        provider_name=provider if provider != "auto" else None
     )
 
     return schema.model_validate_json(response.text)

@@ -34,9 +34,10 @@ export async function register(email, password) {
   return res.json();
 }
 
-export async function uploadDocument(file) {
+export async function uploadDocument(file, provider = "auto") {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('provider', provider);
 
   const res = await fetch(`${API_URL}/documents`, {
     method: 'POST',

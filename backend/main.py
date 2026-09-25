@@ -4,7 +4,7 @@ from pathlib import Path
 from uuid import uuid4
 from typing import Optional
 
-from fastapi import FastAPI, File, HTTPException, UploadFile, Depends, status, BackgroundTasks, Request
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Depends, status, BackgroundTasks, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
@@ -136,6 +136,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 async def upload_document(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    provider: str = Form("auto"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -182,7 +183,7 @@ async def upload_document(
     db.commit()
 
     # Process in background
-    background_tasks.add_task(process_document_task, document_id, str(file_path), file.filename)
+    background_tasks.add_task(process_document_task, document_id, str(file_path), file.filename, provider)
 
     return {
         "document_id": document_id,

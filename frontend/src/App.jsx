@@ -22,14 +22,14 @@ export default function App() {
     setLogs(prev => [...prev, { time: new Date().toLocaleTimeString(), message }]);
   };
 
-  const handleUpload = async (file) => {
+  const handleUpload = async (file, provider = "auto") => {
     setAppState('uploading');
     setLogs([]);
     setResultData(null);
     setChatHistory([]);
-    addLog(`Uploading ${file.name}...`);
+    addLog(`Uploading ${file.name} (Model: ${provider})...`);
     try {
-      const res = await uploadDocument(file);
+      const res = await uploadDocument(file, provider);
       addLog(`Upload successful. Task ID: ${res.task_id}`);
       setTaskId(res.task_id);
       setDocumentId(res.document_id);

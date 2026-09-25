@@ -39,6 +39,7 @@ def process_document_task(
     document_id: str,
     file_path: str,
     file_name: str,
+    provider: str = "auto"
 ) -> dict[str, Any]:
     """Background task to process a document pipeline."""
     
@@ -75,6 +76,7 @@ def process_document_task(
         extracted_data = extract_document(
             full_text,
             classification.document_type,
+            provider=provider
         )
 
         # 4. Anomaly Detection
