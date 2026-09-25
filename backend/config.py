@@ -59,10 +59,12 @@ PROVIDER_MODELS: dict[str, str | None] = {
 
 DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./docflow.db")
 
-CHROMA_SERVER_HOST: str | None = os.getenv("CHROMA_SERVER_HOST")
-CHROMA_SERVER_PORT: str | None = os.getenv("CHROMA_SERVER_PORT", "8000")
+CHROMA_SERVER_HOST: str | None = os.getenv("CHROMA_SERVER_HOST") or os.getenv("CHROMA_HOST")
+# Auto-detect Chroma Cloud to set defaults
+_is_cloud = CHROMA_SERVER_HOST and "trychroma.com" in CHROMA_SERVER_HOST
+CHROMA_SERVER_PORT: str | None = os.getenv("CHROMA_SERVER_PORT", "443" if _is_cloud else "8000")
 CHROMA_API_KEY: str | None = os.getenv("CHROMA_API_KEY")
 CHROMA_TENANT: str = os.getenv("CHROMA_TENANT", "default_tenant")
 CHROMA_DATABASE: str = os.getenv("CHROMA_DATABASE", "default_database")
-CHROMA_SSL: bool = os.getenv("CHROMA_SSL", "false").lower() == "true"
+CHROMA_SSL: bool = os.getenv("CHROMA_SSL", "true" if _is_cloud else "false").lower() == "true"
 CHROMA_COLLECTION: str = os.getenv("CHROMA_COLLECTION", "docflow")
